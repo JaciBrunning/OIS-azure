@@ -1,0 +1,75 @@
+
+import groovy.json.JsonOutput
+
+Map<String, Object> vendorJson() {
+  return [
+    fileName: "ois.json",
+    name: "OIS",
+    version: project.version,
+    uuid: "0217deef-2fcc-41cd-96d8-fa7ae499ac32",
+    mavenUrls: [
+      "https://dev.imjac.in/maven/"
+    ],
+    jsonUrl: "https://dev.imjac.in/maven/thirdparty/ois/ois-latest.json",
+    cppDependencies: [
+      [
+        groupId: project.group,
+        artifactId: 'OIS',
+        version: project.version,
+        libName: 'ois',
+        configuration: "native_ois",
+        headerClassifier: 'headers',
+        sharedLibrary: true,
+        skipInvalidPlatforms: true,
+        binaryPlatforms: [
+          "linuxx86-64",
+          "windowsx86-64",
+          "osxx86-64"
+        ]
+      ]
+    ],
+  ]
+}
+
+String vendorJsonString() {
+  return JsonOutput.prettyPrint(JsonOutput.toJson(vendorJson()))
+}
+
+task generateVendorDepsJson() {
+  def outfile = new File(buildDir, "ois.json")
+  outputs.file(outfile)
+
+  doLast {
+    outfile.text = vendorJsonString()
+  }
+}
+
+publishing {
+  publications {
+    vendordeps(MavenPublication) {
+      artifactId "ois-FRCDeps"
+      groupId 'thirdparty.ois'
+
+      artifact(generateVendorDepsJson.outputs.files.files[0]) {
+        builtBy generateVendorDepsJson
+      }
+    }
+  }
+}
+
+afterEvaluate {
+  publishing.repositories.all {
+    def vendorTask = task "writeLatestVendorDepsTo${name}"() {
+      def outfile = new File(new File(url), "thirdparty/ois/ois-latest.json")
+      outputs.file(outfile)
+
+      doLast {
+        outfile.text = vendorJsonString()
+      }
+    }
+
+    tasks.withType(PublishToMavenRepository).all {
+      dependsOn vendorTask
+    }
+  }
+}

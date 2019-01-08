@@ -1,0 +1,101 @@
+plugins {
+  id 'maven-publish'
+  id "edu.wpi.first.GradleRIO" version "2019.1.1"
+  id 'cpp'
+  id 'base'
+}
+
+apply from: 'publishingtools.gradle'
+apply from: 'vendordeps.gradle'
+
+group = 'thirdparty.ois'
+version = '1.0.0-a'
+
+task prepare_prereqs() {
+  def from = file('OIS/includes/OISPrereqs.h.in')
+  def into = file('OIS/includes/OISPrereqs.h')
+
+  def replace_map = [
+    OIS_MAJOR_VERSION: 1,
+    OIS_MINOR_VERSION: 5,
+    OIS_PATCH_VERSION: 0,
+    OIS_SOVERSION: '1.5.0'
+  ]
+
+  def content = from.text
+  replace_map.each { k, v ->
+    content = content.replaceAll("@${k}@".toString(), v.toString())
+  }
+
+  into.text = content
+}
+
+model {
+  components {
+    ois(NativeLibrarySpec) {
+      targetPlatform wpi.platforms.desktop
+
+      binaries.all {
+        def mac = targetPlatform.operatingSystem.isMacOsX()
+        def linux = targetPlatform.operatingSystem.isLinux()
+        def windows = targetPlatform.operatingSystem.isWindows()
+
+        sources {
+          ois(mac ? ObjectiveCppSourceSet : CppSourceSet) {
+            source {
+              srcDir 'OIS/src'
+              include '*.cpp'
+              if (mac) {
+                include 'mac/*.cpp', 'mac/*.mm'
+              } else if (windows) {
+                include 'win32/*.cpp'
+              } else if (linux) {
+                include 'linux/*.cpp'
+              }
+            }
+            exportedHeaders {
+              srcDir 'OIS/includes'
+            }
+          }
+        }
+
+        if (mac) {
+          linker.args << '-framework' << 'Foundation'
+          linker.args << '-framework' << 'IOKit'
+          linker.args << '-framework' << 'AppKit'
+          linker.args << '-framework' << 'GameController'
+        } else if (targetPlatform.operatingSystem.isWindows()) {
+          linker.args << 'Xinput9_1_0.lib' << 'user32.lib' << 'ws2_32.lib'
+        }
+
+        it.tasks.all {
+          it.dependsOn prepare_prereqs
+        }
+      }
+    }
+  }
+}
+
+task zipHeaders(type: Zip) {
+  from fileTree('OIS/include')
+
+  classifier = 'headers'
+}
+
+publishing {
+  publications {
+    ois(MavenPublication) {
+      artifactId "OIS"
+
+      artifact zipHeaders {
+          classifier 'headers'
+      }
+
+      binaryArtifacts(it, 'ois')
+    }
+  }
+}
+
+wrapper {
+  gradleVersion = 5.0
+}
