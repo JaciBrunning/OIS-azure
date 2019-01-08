@@ -76,7 +76,7 @@ model {
         } else if (windows) {
           cppCompiler.define 'OIS_WIN32_XINPUT_SUPPORT'
           cppCompiler.define 'OIS_NONCLIENT_BUILD'
-          linker.args << 'xinput.lib' << 'user32.lib' << 'ws2_32.lib' << 'dinput8.lib' << 'dxguid.lib' << 'ole32.lib'
+          linker.args << 'xinput.lib' << 'user32.lib' << 'ws2_32.lib' << 'dinput8.lib' << 'dxguid.lib' << 'ole32.lib' << 'oleaut32.lib'
         }
 
         if (it instanceof SharedLibraryBinarySpec) {
