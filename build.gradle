@@ -45,12 +45,12 @@ model {
         def windows = targetPlatform.operatingSystem.isWindows()
 
         sources {
-          ois(CppSourceSet) {
+          ois(mac ? ObjectiveCppSourceSet : CppSourceSet) {
             source {
               srcDir 'OIS/src'
               include '*.cpp'
               if (mac) {
-                include 'mac/*.cpp'
+                include 'mac/*.cpp', 'mac/*.mm'
               } else if (windows) {
                 include 'win32/*.cpp'
               } else if (linux) {
@@ -61,28 +61,20 @@ model {
               srcDir 'OIS/includes'
             }
           }
-
-          if (mac) {
-            ois_objc(ObjectiveCppSourceSet) {
-              source {
-                srcDir 'OIS/src'
-                include 'mac/*.mm'
-              }
-              exportedHeaders {
-                srcDir 'OIS/includes'
-              }
-            }
-          }
         }
 
         if (mac) {
           linker.args << '-framework' << 'Foundation'
           linker.args << '-framework' << 'IOKit'
-          linker.args << '-framework' << 'AppKit'
-          linker.args << '-framework' << 'GameController'
+          linker.args << '-framework' << 'Cocoa'
+          linker.args << '-framework' << 'Carbon'
         } else if (windows) {
           cppCompiler.define 'OIS_WIN32_XINPUT_SUPPORT'
           linker.args << 'Xinput9_1_0.lib' << 'user32.lib' << 'ws2_32.lib' << 'dinput8.lib' << 'dxguid.lib'
+        }
+
+        if (it instanceof SharedLibraryBinarySpec) {
+          cppCompiler.define 'OIS_DYNAMIC_LIB'
         }
 
         it.tasks.all {
