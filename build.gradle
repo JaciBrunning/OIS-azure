@@ -45,12 +45,12 @@ model {
         def windows = targetPlatform.operatingSystem.isWindows()
 
         sources {
-          ois(mac ? ObjectiveCppSourceSet : CppSourceSet) {
+          ois(CppSourceSet) {
             source {
               srcDir 'OIS/src'
               include '*.cpp'
               if (mac) {
-                include 'mac/*.cpp', 'mac/*.mm'
+                include 'mac/*.cpp'
               } else if (windows) {
                 include 'win32/*.cpp'
               } else if (linux) {
@@ -61,6 +61,18 @@ model {
               srcDir 'OIS/includes'
             }
           }
+
+          if (mac) {
+            ois_objc(ObjectiveCppSourceSet) {
+              source {
+                srcDir 'OIS/src'
+                include 'mac/*.mm'
+              }
+              exportedHeaders {
+                srcDir 'OIS/includes'
+              }
+            }
+          }
         }
 
         if (mac) {
@@ -69,7 +81,7 @@ model {
           linker.args << '-framework' << 'AppKit'
           linker.args << '-framework' << 'GameController'
         } else if (windows) {
-          compiler.define 'OIS_WIN32_XINPUT_SUPPORT'
+          cppCompiler.define 'OIS_WIN32_XINPUT_SUPPORT'
           linker.args << 'Xinput9_1_0.lib' << 'user32.lib' << 'ws2_32.lib' << 'dinput8.lib' << 'dxguid.lib'
         }
 
