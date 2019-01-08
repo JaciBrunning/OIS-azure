@@ -19,9 +19,9 @@ model {
                     into(targetPlatform.name)
 
                     baseName = component.name
-                    classifier = targetPlatform.name
+                    classifier = taskSuffix
 
-                    dependsOn bin.tasks.withType(AbstractLinkTask)
+                    dependsOn bin.tasks
                 }
 
                 binaryPublishers[bin.component.name]?.each { entry -> 
