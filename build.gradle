@@ -5,9 +5,14 @@ plugins {
   id 'base'
 }
 
+import edu.wpi.first.gradlerio.wpi.WPINativeCompileRules
+
 if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
   apply plugin: 'objective-cpp'
+  // No arc
+  WPINativeCompileRules.macObjCppLinkerArgs[2] = '-fno-objc-arc'
 }
+
 
 apply from: 'publishingtools.gradle'
 apply from: 'vendordeps.gradle'

@@ -3,14 +3,14 @@ import groovy.json.JsonOutput
 
 Map<String, Object> vendorJson() {
   return [
-    fileName: "ois.json",
+    fileName: "OIS.json",
     name: "OIS",
     version: project.version,
     uuid: "0217deef-2fcc-41cd-96d8-fa7ae499ac32",
     mavenUrls: [
       "https://dev.imjac.in/maven/"
     ],
-    jsonUrl: "https://dev.imjac.in/maven/thirdparty/ois/ois-latest.json",
+    jsonUrl: "https://dev.imjac.in/maven/thirdparty/ois/OIS-latest.json",
     cppDependencies: [
       [
         groupId: project.group,
@@ -36,7 +36,7 @@ String vendorJsonString() {
 }
 
 task generateVendorDepsJson() {
-  def outfile = new File(buildDir, "ois.json")
+  def outfile = new File(buildDir, "OIS.json")
   outputs.file(outfile)
 
   doLast {
@@ -47,7 +47,7 @@ task generateVendorDepsJson() {
 publishing {
   publications {
     vendordeps(MavenPublication) {
-      artifactId "ois-FRCDeps"
+      artifactId "OIS-FRCDeps"
       groupId 'thirdparty.ois'
 
       artifact(generateVendorDepsJson.outputs.files.files[0]) {
@@ -60,7 +60,7 @@ publishing {
 afterEvaluate {
   publishing.repositories.all {
     def vendorTask = task "writeLatestVendorDepsTo${name}"() {
-      def outfile = new File(new File(url), "thirdparty/ois/ois-latest.json")
+      def outfile = new File(new File(url), "thirdparty/ois/OIS-latest.json")
       outputs.file(outfile)
 
       doLast {
